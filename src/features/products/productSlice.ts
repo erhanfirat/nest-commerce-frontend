@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../api/axiosInstance";
 
-interface Product {
+export interface Product {
   id: number;
   name: string;
   description: string;
@@ -15,7 +15,7 @@ interface PaginationParams {
   limit: number;
 }
 
-interface PaginatedResponse {
+export interface PaginatedResponse {
   data: Product[];
   total: number;
   page: number;

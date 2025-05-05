@@ -45,7 +45,15 @@ const ProductList: React.FC = () => {
   };
 
   const handleAddToCart = (product: any) => {
-    dispatch(addToCart({ product, quantity: 1 }));
+    dispatch(
+      addToCart({
+        productId: product.id,
+        name: product.name,
+        price: parseFloat(product.price),
+        image: product.images[0],
+        quantity: 1,
+      })
+    );
   };
 
   if (loading) {

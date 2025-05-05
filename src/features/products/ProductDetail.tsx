@@ -37,7 +37,15 @@ const ProductDetail: React.FC = () => {
 
   const handleAddToCart = () => {
     if (product) {
-      dispatch(addToCart({ product, quantity }));
+      dispatch(
+        addToCart({
+          productId: product.id,
+          name: product.name,
+          price: parseFloat(product.price),
+          image: product.images[0],
+          quantity: quantity,
+        })
+      );
     }
   };
 

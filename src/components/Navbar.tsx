@@ -9,6 +9,7 @@ import {
   Menu,
   MenuItem,
   Avatar,
+  Badge,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,6 +21,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
+  const { totalQuantity } = useSelector((state: RootState) => state.cart);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -60,7 +62,9 @@ const Navbar: React.FC = () => {
                 onClick={() => navigate("/cart")}
                 size="large"
               >
-                <ShoppingCartIcon />
+                <Badge badgeContent={totalQuantity} color="error">
+                  <ShoppingCartIcon />
+                </Badge>
               </IconButton>
 
               <IconButton

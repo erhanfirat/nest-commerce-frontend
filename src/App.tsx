@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./features/auth/LoginPage";
 import ProductList from "./features/products/ProductList";
 import ProductForm from "./features/products/ProductForm";
+import CartPage from "./features/cart/CartPage";
 
 const theme = createTheme({
   palette: {
@@ -32,6 +33,7 @@ function App() {
               <Route path="/" element={<ProductList />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/products" element={<ProductList />} />
+              <Route path="/cart" element={<CartPage />} />
 
               {/* Protected Routes */}
               <Route
