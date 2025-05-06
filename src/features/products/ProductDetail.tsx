@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { AppDispatch, RootState } from "../../app/store";
 import { fetchProductById } from "./productSlice";
-import { addToCart } from "../cart/cartSlice";
+import { addToCartApi } from "../cart/cartSlice";
 import ProductImageGallery from "../../components/ProductImageGallery";
 
 const ProductDetail: React.FC = () => {
@@ -38,12 +38,12 @@ const ProductDetail: React.FC = () => {
   const handleAddToCart = () => {
     if (product) {
       dispatch(
-        addToCart({
+        addToCartApi({
           productId: product.id,
+          quantity: quantity,
           name: product.name,
           price: parseFloat(product.price),
           image: product.images[0],
-          quantity: quantity,
         })
       );
     }

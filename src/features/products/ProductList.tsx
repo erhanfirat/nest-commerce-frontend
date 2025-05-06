@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { AppDispatch, RootState } from "../../app/store";
 import { fetchProducts, setPage } from "./productSlice";
 import ProductImageGallery from "../../components/ProductImageGallery";
-import { addToCart } from "../cart/cartSlice";
+import { addToCartApi } from "../cart/cartSlice";
 
 const ProductList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,12 +46,12 @@ const ProductList: React.FC = () => {
 
   const handleAddToCart = (product: any) => {
     dispatch(
-      addToCart({
+      addToCartApi({
         productId: product.id,
+        quantity: 1,
         name: product.name,
         price: parseFloat(product.price),
         image: product.images[0],
-        quantity: 1,
       })
     );
   };

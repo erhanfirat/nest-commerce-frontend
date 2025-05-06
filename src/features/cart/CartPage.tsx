@@ -1,14 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../app/store";
-import { removeFromCart, updateQuantity } from "./cartSlice";
+import { RootState, AppDispatch } from "../../app/store";
+import { updateQuantity, fetchCart, clearCartApi } from "./cartSlice";
 import { Link } from "react-router-dom";
+import { CircularProgress, Alert } from "@mui/material";
 
 const CartPage: React.FC = () => {
-  const dispatch = useDispatch();
-  const { items, totalQuantity, totalAmount } = useSelector(
+  const dispatch = useDispatch<AppDispatch>();
+  const { items, totalQuantity, totalAmount, loading, error } = useSelector(
     (state: RootState) => state.cart
   );
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
 
   const handleQuantityChange = (productId: number, quantity: number) => {
     if (quantity > 0) {
@@ -16,9 +21,25 @@ const CartPage: React.FC = () => {
     }
   };
 
-  const handleRemoveItem = (productId: number) => {
-    dispatch(removeFromCart(productId));
+  const handleClearCart = () => {
+    dispatch(clearCartApi());
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center">
+        <CircularProgress />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert severity="error">{error}</Alert>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -66,12 +87,6 @@ const CartPage: React.FC = () => {
                 >
                   +
                 </button>
-                <button
-                  onClick={() => handleRemoveItem(item.productId)}
-                  className="ml-4 text-red-500 hover:text-red-700"
-                >
-                  Kaldır
-                </button>
               </div>
             </div>
             <div className="text-right">
@@ -90,9 +105,17 @@ const CartPage: React.FC = () => {
               Toplam Tutar: {totalAmount.toFixed(2)} TL
             </p>
           </div>
-          <button className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
-            Siparişi Tamamla
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={handleClearCart}
+              className="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600"
+            >
+              Sepeti Temizle
+            </button>
+            <button className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+              Siparişi Tamamla
+            </button>
+          </div>
         </div>
       </div>
     </div>
