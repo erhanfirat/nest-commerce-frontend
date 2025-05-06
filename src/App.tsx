@@ -1,76 +1,59 @@
-import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Box, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "./store";
+import { refreshToken } from "./features/auth/authSlice";
+import { fetchCart } from "./features/cart/cartSlice";
 import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
-import LoginPage from "./features/auth/LoginPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import ProductList from "./features/products/ProductList";
-import ProductForm from "./features/products/ProductForm";
+import ProductDetail from "./features/products/ProductDetail";
 import CartPage from "./features/cart/CartPage";
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#1976d2",
-    },
-    secondary: {
-      main: "#dc004e",
-    },
-  },
-});
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { token } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      if (token) {
+        try {
+          await dispatch(refreshToken()).unwrap();
+          await dispatch(fetchCart()).unwrap();
+        } catch (error) {
+          console.error("Otomatik giriş başarısız:", error);
+        }
+      }
+    };
+
+    initializeApp();
+  }, [dispatch, token]);
+
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <BrowserRouter>
-        <Box
-          sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-        >
-          <Navbar />
-          <Box component="main" sx={{ flexGrow: 1, py: 3 }}>
-            <Routes>
-              <Route path="/" element={<ProductList />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/products" element={<ProductList />} />
-              <Route path="/cart" element={<CartPage />} />
-
-              {/* Protected Routes */}
-              <Route
-                element={
-                  <ProtectedRoute
-                    allowedRoles={["admin", "superadmin", "seller"]}
-                  />
-                }
-              >
-                <Route path="/products/new" element={<ProductForm />} />
-                <Route path="/products/edit/:id" element={<ProductForm />} />
-              </Route>
-
-              {/* Admin Routes */}
-              <Route
-                element={
-                  <ProtectedRoute allowedRoles={["admin", "superadmin"]} />
-                }
-              >
-                <Route path="/admin/*" element={<div>Admin Dashboard</div>} />
-              </Route>
-
-              {/* Seller Routes */}
-              <Route element={<ProtectedRoute allowedRoles={["seller"]} />}>
-                <Route path="/seller/*" element={<div>Seller Dashboard</div>} />
-              </Route>
-
-              {/* User Routes */}
-              <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
-                <Route path="/orders" element={<div>Orders</div>} />
-                <Route path="/profile" element={<div>Profile</div>} />
-              </Route>
-            </Routes>
-          </Box>
-        </Box>
-      </BrowserRouter>
-    </ThemeProvider>
+    <Router>
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <Routes>
+            <Route path="/" element={<ProductList />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route
+              path="/cart"
+              element={
+                <ProtectedRoute allowedRoles={["user", "admin", "seller"]}>
+                  <CartPage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 

@@ -1,21 +1,11 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axiosInstance from "../../api/axiosInstance";
 
 interface User {
   id: number;
   email: string;
+  name: string;
   role: string;
-}
-
-interface LoginResponse {
-  access_token: string;
-  user: User;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  timestamp: string;
-  data: T;
 }
 
 interface AuthState {
@@ -35,27 +25,19 @@ const initialState: AuthState = {
 export const login = createAsyncThunk(
   "auth/login",
   async (credentials: { email: string; password: string }) => {
-    try {
-      const response = await axiosInstance.post<ApiResponse<LoginResponse>>(
-        "/auth/login",
-        credentials
-      );
-      const { access_token, user } = response.data.data;
-
-      // Token'ı localStorage'a kaydet
-      localStorage.setItem("token", access_token);
-
-      // Axios header'ına token'ı ekle
-      axiosInstance.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${access_token}`;
-
-      return { access_token, user };
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Giriş başarısız");
-    }
+    const response = await axiosInstance.post("/auth/login", credentials);
+    const { token, user } = response.data.data;
+    localStorage.setItem("token", token);
+    return { token, user };
   }
 );
+
+export const refreshToken = createAsyncThunk("auth/refresh", async () => {
+  const response = await axiosInstance.post("/auth/refresh");
+  const { token, user } = response.data.data;
+  localStorage.setItem("token", token);
+  return { token, user };
+});
 
 export const register = createAsyncThunk(
   "auth/register",
@@ -75,11 +57,8 @@ export const getCurrentUser = createAsyncThunk(
 );
 
 export const logout = createAsyncThunk("auth/logout", async () => {
-  // Token'ı localStorage'dan sil
   localStorage.removeItem("token");
-
-  // Axios header'ından token'ı kaldır
-  delete axiosInstance.defaults.headers.common["Authorization"];
+  return null;
 });
 
 const authSlice = createSlice({
@@ -92,6 +71,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -99,12 +79,34 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        state.token = action.payload.access_token;
+        state.token = action.payload.token;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Giriş başarısız";
+        state.error =
+          action.error.message || "Giriş yapılırken bir hata oluştu";
+        localStorage.removeItem("token");
       })
+      // Refresh Token
+      .addCase(refreshToken.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(refreshToken.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        localStorage.setItem("token", action.payload.token);
+      })
+      .addCase(refreshToken.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Token yenilenirken bir hata oluştu";
+        state.user = null;
+        state.token = null;
+        localStorage.removeItem("token");
+      })
+      // Register
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -118,9 +120,11 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || "Kayıt başarısız";
       })
+      // Get Current User
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.user = action.payload;
       })
+      // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.token = null;
