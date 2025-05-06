@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "./store";
+import { AppDispatch, RootState } from "./app/store";
 import { refreshToken } from "./features/auth/authSlice";
 import { fetchCart } from "./features/cart/cartSlice";
 import Navbar from "./components/Navbar";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
 import ProductList from "./features/products/ProductList";
 import ProductDetail from "./features/products/ProductDetail";
 import CartPage from "./features/cart/CartPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import LoginPage from "./features/auth/LoginPage";
+import RegisterPage from "./features/auth/RegisterPage";
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();

@@ -11,18 +11,22 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { AppDispatch, RootState } from "../store";
-import { login, clearError } from "../features/auth/authSlice";
+import { register, clearError } from "./authSlice";
+import { AppDispatch, RootState } from "../../app/store";
 
-const LoginPage: React.FC = () => {
+const RegisterPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
+
+  const [passwordError, setPasswordError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,12 +34,24 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: value,
     }));
+
+    if (name === "confirmPassword" || name === "password") {
+      if (name === "confirmPassword" && value !== formData.password) {
+        setPasswordError("Şifreler eşleşmiyor");
+      } else if (name === "password" && value !== formData.confirmPassword) {
+        setPasswordError("Şifreler eşleşmiyor");
+      } else {
+        setPasswordError("");
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (passwordError) return;
+
     try {
-      await dispatch(login(formData)).unwrap();
+      await dispatch(register(formData)).unwrap();
       navigate("/");
     } catch (error) {
       // Hata zaten state'te tutulacak
@@ -53,7 +69,7 @@ const LoginPage: React.FC = () => {
         }}
       >
         <Typography component="h1" variant="h5">
-          Giriş Yap
+          Kayıt Ol
         </Typography>
 
         {error && (
@@ -67,11 +83,22 @@ const LoginPage: React.FC = () => {
             margin="normal"
             required
             fullWidth
+            id="name"
+            label="Ad Soyad"
+            name="name"
+            autoComplete="name"
+            autoFocus
+            value={formData.name}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
             id="email"
             label="E-posta Adresi"
             name="email"
             autoComplete="email"
-            autoFocus
             value={formData.email}
             onChange={handleChange}
           />
@@ -83,22 +110,36 @@ const LoginPage: React.FC = () => {
             label="Şifre"
             type="password"
             id="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="confirmPassword"
+            label="Şifre Tekrar"
+            type="password"
+            id="confirmPassword"
+            autoComplete="new-password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            error={!!passwordError}
+            helperText={passwordError}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            disabled={loading}
+            disabled={loading || !!passwordError}
           >
-            {loading ? <CircularProgress size={24} /> : "Giriş Yap"}
+            {loading ? <CircularProgress size={24} /> : "Kayıt Ol"}
           </Button>
           <Box sx={{ textAlign: "center" }}>
-            <Link component={RouterLink} to="/register" variant="body2">
-              Hesabınız yok mu? Kayıt olun
+            <Link component={RouterLink} to="/login" variant="body2">
+              Zaten hesabınız var mı? Giriş yapın
             </Link>
           </Box>
         </Box>
@@ -107,4 +148,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
